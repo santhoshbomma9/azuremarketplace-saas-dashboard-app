@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if subscription.get('quantity') %}
+<script>
+    $(document).ready(function() {
+    $("input[name$='update']").click(function() {
+        var radiobtnvalue = $(this).val();
+        $("div.plan").hide();
+        $("#"+radiobtnvalue).show();
+    });
+
+    $("input:radio:first").prop("checked", true).trigger("click");
+});
+</script>
+{% endif %}
+
+<div class="jumbotron">
+    <h1>Manage Subscription</h1>
+</div>
+
+<div class="row">
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="list-group">
+        {% for category, message in messages %}
+            <li class="list-group-item list-group-item-danger">{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+</div>
+
+<form method="post" style="font-size: 20px;">
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label">Subscription Name:</label>
+        <div class="col-sm-9">{{ subscription.name }}</div>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label">Subscription Id:</label>
+        <div class="col-sm-9">{{ subscription.id }}</div>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label">Current Offer:</label>
+        <div class="col-sm-9">{{ subscription.offerId }}</div>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label">Current Plan:</label>
+        <div class="col-sm-9">{{ subscription.planId }}
+            <input type="hidden"  id="subscription_plan_id" name="subscription_plan_id" value="{{ subscription.planId }}">
+        </div>
+    </div>
+
+    {% if subscription.get('quantity') %}
+
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label">Current User Quantity:</label>
+        <div class="col-sm-9">{{ subscription.quantity }}
+            <input type="hidden"  id="subscription_activate_quantity" name="subscription_activate_quantity" value="{{ subscription.quantity }}">
+        </div>
+    </div>
+    {% endif %}
+
+    {% if subscription.saasSubscriptionStatus != 'PendingFulfillmentStart'%}
+    
+    
+    {% if subscription.get('quantity') %}
+
+    <label><input type="radio" name="update" value="quantity" checked="checked">Update Quantity</label>
+    <label><input type="radio" name="update" value="planId">Update Plan</label>
+
+        <div class="form-group row plan" id="quantity">
+            <label class="col-sm-3 col-form-label">Change User Quantity:</label>
+            <div class="col-sm-9">
+                <input type="number" class="form-control" style="width: 80px;" id="quantity" name="quantity" min="1" max="100">
+            </div>
+        </div>
+
+    {% endif %}
+
+    <div class="form-group row plan" id="planId">
+        <label class="col-sm-3 col-form-label">Available Plans:</label>
+        <div class="col-sm-9">
+            <select name="planId" class="form-control" width="300px">
+                {% for key, plans in available_plans.items() %}
+                    {% for item in plans %}
+                        {% if item.planId != subscription.planId %}
+                            <option value="{{ item.planId }}">{{ item.planId }}</option>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    {% endif %}
+        
+        <div class="form-group row">
+        {% if subscription.saasSubscriptionStatus == 'PendingFulfillmentStart'%}
+            <div class="col-sm-10 offset-sm-2">
+                <button type="submit" class="btn btn-primary" name="activate" value="activate">Activate</button>
+            </div>
+        {% else %}
+            <div class="col-sm-10 offset-sm-2">
+                <button type="submit" class="btn btn-primary" name="update" value="update">Update</button>
+                <button type="submit" class="btn btn-danger pull-right" name="unsubscribe" value="unsubscribe">Unsubscribe</button>
+            </div>
+        {% endif %}    
+        </div>
+</form>
+{% endblock %}
